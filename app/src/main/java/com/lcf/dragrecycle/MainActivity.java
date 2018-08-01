@@ -4,7 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,15 +21,13 @@ public class MainActivity extends AppCompatActivity {
     private List<String> mUnselectedDatas;
     private SelectedRecycleAdapter mSelectedAdatper;
     private UnSelectedRecycleAdapter mUnSelectedAdatper;
-    private ItemTouchHelper mItemTouchHelper;
+    private ItemTouchCustomHelper mItemTouchHelper;
 
     private TextView mFinishedText;
 
-    private boolean isDeleteIconsShow = false;
+    private ArrayList<Integer> mSelectNoNeedSwipeList;
 
-    public boolean isDeleteIconsShow() {
-        return isDeleteIconsShow;
-    }
+    private boolean isAddIconsShow = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +43,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        mSelectNoNeedSwipeList = new ArrayList<Integer>();
+        mSelectNoNeedSwipeList.add(0);
+        mSelectNoNeedSwipeList.add(1);
+        mSelectNoNeedSwipeList.add(2);
+
         mRecycleSelected.setLayoutManager(new GridLayoutManager(this, 4));
         mSelectedAdatper = new SelectedRecycleAdapter(this, mSelectedDatas);
+        mSelectedAdatper.setSelectNoNeedSwipeList(mSelectNoNeedSwipeList);
         mRecycleSelected.setAdapter(mSelectedAdatper);
         mRecycleSelected.addItemDecoration(new SpaceItemDecoration(8));
 
@@ -60,22 +64,41 @@ public class MainActivity extends AppCompatActivity {
     private void initEvent() {
         //初始化ItemTouchHelper实例
         ItemTouchHelperCallback callback = new ItemTouchHelperCallback(mSelectedAdatper);
-        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper = new ItemTouchCustomHelper(callback);
         //mItemTouchHelper关联RecyclerView
         mItemTouchHelper.attachToRecyclerView(mRecycleSelected);
+
+        mRecycleSelected.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
 
         mSelectedAdatper.setOnItemClickListener(new SelectedRecycleAdapter.OnItemClickListener() {
             @Override
             public void onItemClickListener(SelectedRecycleAdapter.MyViewHolder viewHolder, int pos) {
-                if (!isDeleteIconsShow) {
+                if (!mSelectedAdatper.isDeleteIconsShow()) {
                     Toast.makeText(MainActivity.this, mSelectedDatas.get(pos), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onItemLongClickListener(SelectedRecycleAdapter.MyViewHolder viewHolder, int pos) {
-                if (!isDeleteIconsShow) {
-                    showAllDeleteIcons();
+                if (!mSelectedAdatper.isDeleteIconsShow()) {
+//                    showAllDeleteIcons();
+                    mSelectedAdatper.setDeleteIconsShow(true);
+                    mSelectedAdatper.notifyDataSetChanged();
 
                     mFinishedText.setVisibility(View.VISIBLE);
                 }
@@ -94,8 +117,9 @@ public class MainActivity extends AppCompatActivity {
         mFinishedText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideAllDeleteIcons();
-
+                mSelectedAdatper.setDeleteIconsShow(false);
+                mSelectedAdatper.notifyDataSetChanged();
+//                hideAllDeleteIcons();
                 mFinishedText.setVisibility(View.INVISIBLE);
             }
         });
@@ -104,20 +128,12 @@ public class MainActivity extends AppCompatActivity {
         mUnSelectedAdatper.setOnItemClickListener(new UnSelectedRecycleAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(UnSelectedRecycleAdapter.MyViewHolder holder, int pos) {
-
                 mSelectedAdatper.addData(mUnselectedDatas.get(pos), mSelectedDatas.size());
-
                 mUnSelectedAdatper.removeData(pos);
-
             }
 
             @Override
             public void onItemLongClickListener(UnSelectedRecycleAdapter.MyViewHolder viewHolder, int pos) {
-                if (!isDeleteIconsShow) {
-                    showAllAddIcons();
-
-                    mFinishedText.setVisibility(View.VISIBLE);
-                }
             }
         });
 
@@ -176,46 +192,31 @@ public class MainActivity extends AppCompatActivity {
         mUnselectedDatas.add("萌宠");
     }
 
-    /**
-     * 显示出所有的删除图标
-     */
-    private void showAllDeleteIcons() {
-        int count = mRecycleSelected.getChildCount();
-        for (int i = 0; i < count; i++) {
-            View child = mRecycleSelected.getChildAt(i);
-            ImageView delete = (ImageView) child.findViewById(R.id.delelte);
-            delete.setVisibility(View.VISIBLE);
-        }
-
-        isDeleteIconsShow = true;
-    }
-
-    /**
-     * 隐藏所有的删除图标
-     */
-    private void hideAllDeleteIcons() {
-        int count = mRecycleSelected.getChildCount();
-        for (int i = 0; i < count; i++) {
-            View child = mRecycleSelected.getChildAt(i);
-            ImageView delete = (ImageView) child.findViewById(R.id.delelte);
-            delete.setVisibility(View.INVISIBLE);
-        }
-
-        isDeleteIconsShow = false;
-    }
-
-
-    /**
-     * 显示出所有的删除图标
-     */
-    private void showAllAddIcons() {
-        int count = mRecycleUnSelected.getChildCount();
-        for (int i = 0; i < count; i++) {
-            View child = mRecycleUnSelected.getChildAt(i);
-            ImageView delete = (ImageView) child.findViewById(R.id.delelte);
-            delete.setVisibility(View.VISIBLE);
-        }
-
-    }
-
+//    /**
+//     * 显示出所有的删除图标
+//     */
+//    private void showAllDeleteIcons() {
+//        int count = mRecycleSelected.getChildCount();
+//        for (int i = 0; i < count; i++) {
+//            View child = mRecycleSelected.getChildAt(i);
+//            ImageView delete = (ImageView) child.findViewById(R.id.delelte);
+//            delete.setVisibility(View.VISIBLE);
+//        }
+//
+//        isDeleteIconsShow = true;
+//    }
+//
+//    /**
+//     * 隐藏所有的删除图标
+//     */
+//    private void hideAllDeleteIcons() {
+//        int count = mRecycleSelected.getChildCount();
+//        for (int i = 0; i < count; i++) {
+//            View child = mRecycleSelected.getChildAt(i);
+//            ImageView delete = (ImageView) child.findViewById(R.id.delelte);
+//            delete.setVisibility(View.INVISIBLE);
+//        }
+//
+//        isDeleteIconsShow = false;
+//    }
 }

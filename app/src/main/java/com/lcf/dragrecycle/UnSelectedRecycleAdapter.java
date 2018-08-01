@@ -12,19 +12,15 @@ import android.widget.TextView;
 
 import java.util.List;
 
-/**
- * Created by lichunfu on 2018/2/7.
- */
-
 public class UnSelectedRecycleAdapter extends RecyclerView.Adapter<UnSelectedRecycleAdapter.MyViewHolder> {
 
     private Context mContext;
     private List<String> mDatas;
 
     public interface OnItemClickListener {
-        public void onItemClick(MyViewHolder holder, int pos);
+        void onItemClick(MyViewHolder holder, int pos);
 
-        public void onItemLongClickListener(MyViewHolder viewHolder, int pos);
+        void onItemLongClickListener(MyViewHolder viewHolder, int pos);
     }
 
     private OnItemClickListener mListener;
@@ -44,12 +40,11 @@ public class UnSelectedRecycleAdapter extends RecyclerView.Adapter<UnSelectedRec
         return holder;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         holder.tv.setText(mDatas.get(position));
-//        holder.ivDelete.setImageResource(R.drawable.add);
-        holder.ivDelete.setImageDrawable(mContext.getDrawable(R.drawable.add));
+        holder.ivDelete.setImageDrawable(mContext.getResources().getDrawable(R.drawable.add));
+        holder.ivDelete.setVisibility(View.VISIBLE);
         if (mListener != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

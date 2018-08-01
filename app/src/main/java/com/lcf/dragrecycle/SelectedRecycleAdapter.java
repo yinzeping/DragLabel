@@ -8,18 +8,29 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-/**
- * Created by lichunfu on 2018/2/7.
- */
 
 public class SelectedRecycleAdapter extends RecyclerView.Adapter<SelectedRecycleAdapter.MyViewHolder>
         implements ItemTouchHelperCallback.OnItemPositionChangeListener {
 
     private List<String> mDatas;
     private MainActivity mContext;
+    private ArrayList<Integer> mSelectNoNeedSwipeList;
+    private boolean isDeleteIconsShow;
+
+    public void setSelectNoNeedSwipeList(ArrayList<Integer> mSelectNoNeedSwipeList) {
+        this.mSelectNoNeedSwipeList = mSelectNoNeedSwipeList;
+    }
+
+    public boolean isDeleteIconsShow() {
+        return isDeleteIconsShow;
+    }
+
+    public void setDeleteIconsShow(boolean deleteIconsShow) {
+        isDeleteIconsShow = deleteIconsShow;
+    }
 
     public interface OnItemClickListener {
         void onItemClickListener(MyViewHolder viewHolder, int pos);
@@ -58,11 +69,20 @@ public class SelectedRecycleAdapter extends RecyclerView.Adapter<SelectedRecycle
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         holder.tv.setText(mDatas.get(position));
-
-        if (mContext.isDeleteIconsShow()) {
+        boolean needShowDeleteIcon = true;
+        if(mSelectNoNeedSwipeList!=null){
+            needShowDeleteIcon = !mSelectNoNeedSwipeList.contains(position);
+        }
+        if (isDeleteIconsShow() && needShowDeleteIcon) {
             holder.ivDelete.setVisibility(View.VISIBLE);
         } else {
             holder.ivDelete.setVisibility(View.INVISIBLE);
+        }
+
+        if (needShowDeleteIcon) {
+            holder.tv.setBackgroundResource(R.drawable.tv_bg_enabled);
+        } else {
+            holder.tv.setBackgroundResource(R.drawable.tv_bg_unenabled);
         }
 
         holder.ivDelete.setOnClickListener(new View.OnClickListener() {
@@ -104,6 +124,11 @@ public class SelectedRecycleAdapter extends RecyclerView.Adapter<SelectedRecycle
         Collections.swap(mDatas, fromPos, toPos);
         notifyItemMoved(fromPos, toPos);
         return true;
+    }
+
+    @Override
+    public List<Integer> getSelectNoNeedSwipeList() {
+        return mSelectNoNeedSwipeList;
     }
 
     public void addData(String data, int pos) {
