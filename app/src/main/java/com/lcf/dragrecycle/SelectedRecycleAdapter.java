@@ -120,9 +120,23 @@ public class SelectedRecycleAdapter extends RecyclerView.Adapter<SelectedRecycle
 
     //根据用户的手势，交换Adapter数据集中item的位置
     @Override
-    public boolean onItemMove(int fromPos, int toPos) {
-        Collections.swap(mDatas, fromPos, toPos);
-        notifyItemMoved(fromPos, toPos);
+    public boolean onItemMove(int fromPosition, int toPosition) {
+//        Collections.swap(mDatas, fromPosition, toPosition);
+//        notifyItemMoved(fromPosition, toPosition);
+
+        if (fromPosition < toPosition) {
+            //从上往下拖动，每滑动一个item，都将list中的item向下交换，向上滑同理。
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(mDatas, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(mDatas, i, i - 1);
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition);
+        //注意此处只是notifyItemMoved并没有notifyDataSetChanged
+        //原因下面会说明
         return true;
     }
 
